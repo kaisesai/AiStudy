@@ -1,4 +1,4 @@
-package com.liukai.langchain4j.spring.controller;
+package com.kaige.langchain4j.spring.controller;
 
 import dev.langchain4j.model.ollama.OllamaChatModel;
 import org.springframework.web.bind.annotation.GetMapping;
