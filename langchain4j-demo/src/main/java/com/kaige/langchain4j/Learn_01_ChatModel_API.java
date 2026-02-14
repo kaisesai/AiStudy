@@ -1,5 +1,9 @@
 package com.kaige.langchain4j;
 
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.ollama.OllamaChatModel;
 
 import java.time.LocalDateTime;
@@ -89,6 +93,8 @@ public class Learn_01_ChatModel_API {
                 .maxRetries(3)
                 .build();
 
+        // 使用记忆控制
+        ChatMemory chatMemory = MessageWindowChatMemory.withMaxMessages(1000);
 
         // 编写一个用户控制台输入输出的程序
 
@@ -118,8 +124,12 @@ public class Learn_01_ChatModel_API {
 
             try {
                 System.out.println("🤖 正在思考...");
-                String modelResponse = model.chat(userInput);
+                chatMemory.add(UserMessage.userMessage(userInput));
+                // String modelResponse = model.chat(userInput);
+                AiMessage aiMessage = model.chat(chatMemory.messages()).aiMessage();
+                String modelResponse = aiMessage.text();
                 printModelResponse(modelResponse);
+                chatMemory.add(aiMessage);
 
             } catch (Exception e) {
                 System.err.println("❌ 模型调用出错: " + e.getMessage());
