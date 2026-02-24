@@ -57,6 +57,10 @@ public class Learn_01_ChatModel_API {
      * @param args 命令行参数（本程序未使用）
      */
     public static void main(String[] args) {
+        // 设置系统字符编码
+        System.setProperty("file.encoding", "UTF-8");
+        System.setProperty("sun.jnu.encoding", "UTF-8");
+        
         normalProgram();
     }
 

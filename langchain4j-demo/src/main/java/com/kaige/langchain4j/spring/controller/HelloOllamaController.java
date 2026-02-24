@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "/hello")
 public class HelloOllamaController {
 
-
     private OllamaChatModel ollamaChatModel;
 
     public HelloOllamaController(OllamaChatModel ollamaChatModel) {
@@ -21,6 +20,7 @@ public class HelloOllamaController {
     public String model(@RequestParam(value = "message", defaultValue = "Hello") String message) {
         return ollamaChatModel.chat(message);
     }
+
 
 
 }
