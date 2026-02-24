@@ -37,3 +37,14 @@ build/
 
 ### Mac OS ###
 .DS_Store
+/langchain4j-demo/src/main/resources/static/stream-demo.html
+/.idea/.cache/.Apifox_Helper/.toolWindow.db
+/.idea/codeStyles/codeStyleConfig.xml
+/.idea/codeStyles/Project.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/.gitignore
+/.idea/encodings.xml
+/.idea/git_toolbox_prj.xml
+/.idea/misc.xml
+/.idea/palantir-java-format.xml
+/.idea/vcs.xml
