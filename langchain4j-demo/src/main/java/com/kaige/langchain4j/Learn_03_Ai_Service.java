@@ -38,7 +38,7 @@ public class Learn_03_Ai_Service {
 
 
     // 2. 定义一个接口 (这就是 AI Service)
-    interface Assistant {
+    interface Assistant extends com.kaige.langchain4j.service.Assistant {
         String chat(String message);
     }
 

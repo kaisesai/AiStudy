@@ -131,6 +131,14 @@ public class StreamModeController {
                     if (partialResponse != null && partialResponse.text() != null) {
                         // String eventData = "data: " + partialResponse.text().replace("\n", "\\n") + "\n\n";
                         // sink.next(eventData);
+
+                        // try {
+                            // 模拟延迟
+                            // Thread.sleep(10L);
+                        // } catch (InterruptedException e) {
+                        //     throw new RuntimeException(e);
+                        // }
+
                         sink.next(partialResponse.text());
 
                         // 可以根据上下文做特殊处理

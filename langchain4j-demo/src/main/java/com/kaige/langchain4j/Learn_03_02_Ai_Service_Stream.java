@@ -1,15 +1,13 @@
 package com.kaige.langchain4j;
 
+import com.kaige.langchain4j.service.Assistant;
 import dev.langchain4j.agent.tool.Tool;
-import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.UserMessage;
-import dev.langchain4j.service.memory.ChatMemoryAccess;
 
 import java.time.Duration;
 
@@ -22,11 +20,9 @@ public class Learn_03_02_Ai_Service_Stream {
 
         ChatModel chatModel = OpenAiChatModel
                 .builder()
-                .apiKey(Constants.QWEN_API_KEY)
-                .baseUrl(Constants.QWEN_API_BASE_URL)
-                // .modelName("qwen3-max")
-                // .modelName("qwen3.5-plus")
-                .modelName("qwen-flash")
+                .apiKey(Constants.API_KEY)
+                .baseUrl(Constants.API_BASE_URL)
+                .modelName(Constants.API_MODEL)
                 .temperature(0.7).
                 timeout(Duration.ofSeconds(60))
                 .logRequests(true)
@@ -35,13 +31,11 @@ public class Learn_03_02_Ai_Service_Stream {
 
 
         // 创建千问API模型实例
-        StreamingChatModel model = OpenAiStreamingChatModel
+        StreamingChatModel streamingChatModel = OpenAiStreamingChatModel
                 .builder()
-                .apiKey(Constants.QWEN_API_KEY)
-                .baseUrl(Constants.QWEN_API_BASE_URL)
-                // .modelName("qwen3-max")
-                // .modelName("qwen3.5-plus")
-                .modelName("qwen-flash")
+                .apiKey(Constants.API_KEY)
+                .baseUrl(Constants.API_BASE_URL)
+                .modelName(Constants.API_MODEL)
                 .temperature(0.7).
                 timeout(Duration.ofSeconds(60))
                 .logRequests(true)
@@ -143,9 +137,6 @@ public class Learn_03_02_Ai_Service_Stream {
 
 
     // 3. 工具使用
-        interface Assistant {
-            String chat(@UserMessage String message);
-        }
 
         Assistant assistant = AiServices.builder(Assistant.class)
                 .chatModel(chatModel)
