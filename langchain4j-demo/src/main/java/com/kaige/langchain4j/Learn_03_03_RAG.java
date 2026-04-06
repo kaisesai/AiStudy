@@ -3,8 +3,6 @@ package com.kaige.langchain4j;
 import com.kaige.langchain4j.service.Assistant;
 import com.kaige.langchain4j.tool.SearchTool;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.embedding.DisabledEmbeddingModel;
-import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
@@ -21,11 +19,12 @@ public class Learn_03_03_RAG {
 
         ChatModel model = buildChatModel();
 
+        // 设置内存 embedding 模型
         EmbeddingStore embeddingStore  =  new InMemoryEmbeddingStore<>();
 
         // embedding 模型
         OpenAiEmbeddingModel embeddingModel = OpenAiEmbeddingModel.builder()
-                .apiKey(Constants.API_KEY)
+                .apiKey(Constants.MINI_MAX_API_KEY)
                 .baseUrl(Constants.EMBEDDING_API_BASE_URL)
                 // .modelName(Constants.EMBEDDING_API_MODEL)
                 .modelName("doubao-embedding-vision-251215")
@@ -54,9 +53,9 @@ public class Learn_03_03_RAG {
     private static ChatModel buildChatModel() {
         ChatModel chatModel = OpenAiChatModel
                 .builder()
-                .apiKey(Constants.API_KEY)
-                .baseUrl(Constants.API_BASE_URL)
-                .modelName(Constants.API_MODEL)
+                .apiKey(Constants.MINI_MAX_API_KEY)
+                .baseUrl(Constants.MINI_MAX_API_BASE_URL)
+                .modelName(Constants.MINI_MAX_API_MODEL)
                 .temperature(0.7).
                 timeout(Duration.ofSeconds(60))
                 .logRequests(true)

@@ -22,7 +22,7 @@ public class Learn_02_Stream_Mode_Demo {
 
     public static void main(String[] args) {
         // 明确指定使用的HTTP客户端，解决冲突问题
-        System.setProperty("langchain4j.http.clientBuilderFactory", 
+        System.setProperty("langchain4j.http.clientBuilderFactory",
                           "dev.langchain4j.http.client.jdk.JdkHttpClientBuilderFactory");
         
         demoStreamMode();

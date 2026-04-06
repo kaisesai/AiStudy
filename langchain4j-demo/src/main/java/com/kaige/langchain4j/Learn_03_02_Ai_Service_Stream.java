@@ -7,7 +7,6 @@ import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.UserMessage;
 
 import java.time.Duration;
 
@@ -20,9 +19,9 @@ public class Learn_03_02_Ai_Service_Stream {
 
         ChatModel chatModel = OpenAiChatModel
                 .builder()
-                .apiKey(Constants.API_KEY)
-                .baseUrl(Constants.API_BASE_URL)
-                .modelName(Constants.API_MODEL)
+                .apiKey(Constants.MINI_MAX_API_KEY)
+                .baseUrl(Constants.MINI_MAX_API_BASE_URL)
+                .modelName(Constants.MINI_MAX_API_MODEL)
                 .temperature(0.7).
                 timeout(Duration.ofSeconds(60))
                 .logRequests(true)
@@ -33,9 +32,9 @@ public class Learn_03_02_Ai_Service_Stream {
         // 创建千问API模型实例
         StreamingChatModel streamingChatModel = OpenAiStreamingChatModel
                 .builder()
-                .apiKey(Constants.API_KEY)
-                .baseUrl(Constants.API_BASE_URL)
-                .modelName(Constants.API_MODEL)
+                .apiKey(Constants.MINI_MAX_API_KEY)
+                .baseUrl(Constants.MINI_MAX_API_BASE_URL)
+                .modelName(Constants.MINI_MAX_API_MODEL)
                 .temperature(0.7).
                 timeout(Duration.ofSeconds(60))
                 .logRequests(true)

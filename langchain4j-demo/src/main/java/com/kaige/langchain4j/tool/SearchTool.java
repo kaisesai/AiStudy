@@ -19,7 +19,7 @@ public class SearchTool {
 
     @Tool("Search for technical information about LangChain4j and RAG configurations")
     public String search(String query) {
-        // This logic is only executed when the LLM determines retrieval is necessary
+        // 使用 RAG 进行搜索
         return contentRetriever.retrieve(new Query(query)).stream()
                 .map(content -> content.textSegment().text())
                 .collect(Collectors.joining("\n\n"));

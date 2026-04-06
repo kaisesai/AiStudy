@@ -34,6 +34,18 @@
             <artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
         </dependency>
 
+        <!-- Anthropic Starter 用于调用 Anthropic 兼容 API -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-anthropic-spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- web 搜索引擎 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-web-search-engine-tavily</artifactId>
+        </dependency>
+
         <!-- for Flux<String> support -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
