@@ -38,6 +38,12 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-anthropic-spring-boot-starter</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>langchain4j-http-client-jdk</artifactId>
+                    <groupId>dev.langchain4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- web 搜索引擎 -->
