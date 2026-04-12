@@ -3,12 +3,14 @@ package com.kaige.langchain4j;
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.agentic.UntypedAgent;
+import dev.langchain4j.agentic.observability.*;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import lombok.extern.slf4j.Slf4j;
 
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Map;
 
@@ -28,15 +30,17 @@ public class learn_04_Agent {
         这样就可以在代码中省略该名称，而将其添加到此处。
          */
 
-        String apiKey = Constants.ALI_QWEN_LLM_API_KEY;
-        String model = Constants.ALI_QWEN_LLM_API_MODEL;
-        String baseUrl = Constants.ALI_QWEN_LLM_BASE_URL;
+        // String apiKey = Constants.ALI_QWEN_LLM_API_KEY;
+        // String model = Constants.ALI_QWEN_LLM_API_MODEL;
+        // String baseUrl = Constants.ALI_QWEN_LLM_BASE_URL;
+        String apiKey = Constants.MINI_MAX_API_KEY;
+        String model = Constants.MINI_MAX_API_MODEL;
+        String baseUrl = Constants.MINI_MAX_API_BASE_URL;
 
         // 方案 1: 使用 OpenAI 兼容接口 (推荐 ✅)
-        ChatModel chatModel = OpenAiChatModel
-                .builder()
+        ChatModel chatModel = OpenAiChatModel.builder()
                 .apiKey(apiKey)
-                .baseUrl(baseUrl)  // MiniMax OpenAI 兼容接口
+                .baseUrl(baseUrl) // MiniMax OpenAI 兼容接口
                 .modelName(model)
                 .temperature(0.7)
                 .timeout(Duration.ofSeconds(60))
@@ -49,7 +53,6 @@ public class learn_04_Agent {
                 // .returnThinking(false)
                 .build();
 
-
         // 创建一个作家 agent
         // CreativeWriter creativeWriter = AgenticServices.agentBuilder(CreativeWriter.class)
         //         .chatModel(chatModel)
@@ -58,37 +61,40 @@ public class learn_04_Agent {
         // String story = creativeWriter.generateStory("天网与终结者");
         // log.info("story: {}", story);
 
+        AgentMonitor monitor = new AgentMonitor();
+
         // 1. 工作流模式
         // 1.1 顺序工作流
-        CreativeWriter creativeWriter = AgenticServices
-                .agentBuilder(CreativeWriter.class)
+        //
+        CreativeWriter creativeWriter = AgenticServices.agentBuilder(CreativeWriter.class)
+                .listener(new AgentListener() {
+                    @Override
+                    public void beforeAgentInvocation(AgentRequest request) {
+                        System.out.println("Invoking CreativeWriter with topic: "
+                                + request.inputs().get("topic"));
+                    }
+                })
                 .chatModel(chatModel)
                 .outputKey("story")
                 .build();
 
-        AudienceEditor audienceEditor = AgenticServices
-                .agentBuilder(AudienceEditor.class)
+        AudienceEditor audienceEditor = AgenticServices.agentBuilder(AudienceEditor.class)
                 .chatModel(chatModel)
                 .outputKey("story")
                 .build();
 
-        StyleEditor styleEditor = AgenticServices
-                .agentBuilder(StyleEditor.class)
+        StyleEditor styleEditor = AgenticServices.agentBuilder(StyleEditor.class)
                 .chatModel(chatModel)
                 .outputKey("story")
                 .build();
 
-        UntypedAgent novelCreator = AgenticServices
-                .sequenceBuilder()
+        // 顺序工作流
+        UntypedAgent novelCreator = AgenticServices.sequenceBuilder()
                 .subAgents(creativeWriter, audienceEditor, styleEditor)
                 .outputKey("story")
                 .build();
 
-        Map<String, Object> input = Map.of(
-                "topic", "龙与巫师",
-                "style", "幻想",
-                "audience", "年轻人"
-        );
+        Map<String, Object> input = Map.of("topic", "龙与巫师", "style", "幻想", "audience", "年轻人");
 
         String story = (String) novelCreator.invoke(input);
         log.info("generated story: {}", story);
@@ -101,45 +107,106 @@ public class learn_04_Agent {
          */
 
         // 1.2 循环工作流
+        // 通过反复调用能够编辑或改进的文本的代理，来迭代地完善文本。
+        StyleScorer styleScorer = AgenticServices.agentBuilder(StyleScorer.class)
+                .chatModel(chatModel)
+                .outputKey("score")
+                .build();
 
+        // 故事循环检查
+        UntypedAgent styleReviewLoop = AgenticServices.loopBuilder()
+                .subAgents(styleScorer, styleEditor)
+                .maxIterations(5)
+                .exitCondition((agenticScope, loopCounter) -> {
+                    double score = agenticScope.readState("score", 0.0);
+                    return loopCounter <= 3 ? score >= 0.8 : score >= 0.6;
+                })
+                .build();
+
+        // 循环工作流, 故事创作和风格审核结合在一起
+        StyledWriter styledWriter = AgenticServices.sequenceBuilder(StyledWriter.class)
+                .subAgents(creativeWriter, styleReviewLoop)
+                .listener(monitor)
+                .listener(new AgentListener() {
+                    @Override
+                    public void afterAgentInvocation(AgentResponse response) {
+                        if ("styleScorer".equals(response.agentName())) {
+                            System.out.println("Current score: " + response.output());
+                        }
+                    }
+                })
+                .outputKey("story")
+                .build();
+
+        String story1 = styledWriter.writeStoryWithStyle("龙与巫师", "幻想");
+        log.info("使用循环+顺序 agent 生成的故事: {}", story1);
+
+        MonitoredExecution execution = monitor.successfulExecutions().get(0);
+        System.out.println(execution);
+
+        HtmlReportGenerator.generateReport(monitor, Path.of("review-loop.html"));
     }
 
+    public interface StyledWriter {
+
+        @Agent
+        String writeStoryWithStyle(@V("topic") String topic, @V("style") String style);
+    }
+
+    /**
+     * 风格打分者
+     */
+    public interface StyleScorer {
+
+        @UserMessage("""
+            您是一名专业的评论者。
+            请根据故事与“{{style}}”的契合程度，为其给出一个介于 0.0 到 1.0 之间的评分。
+            仅返回评分，不要包含其他内容。
+            故事内容如下：“{{story}}”
+            """)
+        @Agent("根据一个故事与特定风格的契合程度来给其打分")
+        double scoreStyle(@V("story") String story, @V("style") String style);
+    }
+
+    /**
+     * 风格编辑
+     */
     public interface StyleEditor {
 
         @UserMessage("""
-                You are a professional editor.
-                Analyze and rewrite the following story to better fit and be more coherent with the {{style}} style.
-                Return only the story and nothing else.
-                The story is "{{story}}".
-                """)
-        @Agent("Edits a story to better fit a given style")
+            你是一名专业的编辑。
+            请对以下故事进行分析并重新编写，使其更符合并更具连贯性地符合 {{style}} 风格。
+            只返回故事内容，不包含其他任何内容。
+            故事内容为：“{{story}}”。
+            """)
+        @Agent("对故事进行修改，使其更符合特定的风格。")
         String editStory(@V("story") String story, @V("style") String style);
     }
 
+    /**
+     * 听众编辑
+     */
     public interface AudienceEditor {
 
         @UserMessage("""
-                You are a professional editor.
-                Analyze and rewrite the following story to better align
-                with the target audience of {{audience}}.
-                Return only the story and nothing else.
-                The story is "{{story}}".
-                """)
-        @Agent("Edits a story to better fit a given audience")
+            你是一名专业的编辑。
+            请对以下故事进行分析并重新编写，使其更符合 {{audience}} 的目标读者群体。
+            仅返回故事内容，不要其他任何内容。
+            故事是 "{{story}}".
+            """)
+        @Agent("对故事进行修改，使其更符合特定的受众群体。")
         String editStory(@V("story") String story, @V("audience") String audience);
     }
 
+    /**
+     * 创作力作家
+     */
     public interface CreativeWriter {
 
         @UserMessage("""
-                You are a creative writer.
-                Generate a draft of a story no more than
-                3 sentences long around the given topic.
-                Return only the story and nothing else.
-                The topic is {{topic}}.
-                """)
-        @Agent(outputKey = "story", description = "Generates a story based on the given topic")
+            你是一位富有创造力的作家。围绕给定的主题生成一段不超过 3 句话的故事草稿。只返回故事内容，不要其他任何信息。主题为 "{{topic}}"。
+            """)
+        @Agent(outputKey = "story", description = "根据给定的主题生成一个故事")
         String generateStory(@V("topic") String topic);
     }
-
 }
